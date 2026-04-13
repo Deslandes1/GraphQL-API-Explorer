@@ -7,7 +7,6 @@ import json
 # ------------------------------
 st.set_page_config(page_title="GraphQL API Explorer", layout="wide")
 
-# Earth symbol (blue theme)
 def show_earth_symbol(width=100):
     st.markdown(
         f"""
@@ -24,7 +23,6 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    # Blue background for login page
     st.markdown(
         """
         <style>
@@ -87,7 +85,7 @@ col_flag, col_title = st.columns([1, 3])
 with col_flag:
     show_earth_symbol(120)
 with col_title:
-    st.markdown("<p style='font-size:1.1rem; color:white;'>🔍 Test GraphQL queries using the public SpaceX API (or any GraphQL endpoint).</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:1.1rem; color:white;'>🔍 Test GraphQL queries using the public Countries API (or any GraphQL endpoint).</p>", unsafe_allow_html=True)
 
 # ------------------------------
 # SIDEBAR – COMPANY INFO & LOGOUT
@@ -115,7 +113,7 @@ with st.sidebar:
         st.rerun()
 
 # ------------------------------
-# MULTI-LANGUAGE SUPPORT (simplified)
+# MULTI-LANGUAGE SUPPORT
 # ------------------------------
 LANGUAGES = {"English":"en","Español":"es","Français":"fr","Kreyòl Ayisyen":"ht"}
 TEXTS = {
@@ -124,8 +122,8 @@ TEXTS = {
         "query_label": "📝 GraphQL Query",
         "run_btn": "▶️ Run Query",
         "response_title": "📊 Response",
-        "default_endpoint": "https://api.spacex.land/graphql/",
-        "default_query": "{\n  launchesPast(limit: 5) {\n    mission_name\n    launch_date_local\n    rocket {\n      rocket_name\n    }\n  }\n}",
+        "default_endpoint": "https://countries.trevorblades.com/",
+        "default_query": "{\n  countries {\n    code\n    name\n    continent {\n      name\n    }\n  }\n}",
         "error_msg": "Error: Could not fetch data. Check endpoint or query syntax.",
         "success_msg": "Query executed successfully."
     },
@@ -134,8 +132,8 @@ TEXTS = {
         "query_label": "📝 Consulta GraphQL",
         "run_btn": "▶️ Ejecutar consulta",
         "response_title": "📊 Respuesta",
-        "default_endpoint": "https://api.spacex.land/graphql/",
-        "default_query": "{\n  launchesPast(limit: 5) {\n    mission_name\n    launch_date_local\n    rocket {\n      rocket_name\n    }\n  }\n}",
+        "default_endpoint": "https://countries.trevorblades.com/",
+        "default_query": "{\n  countries {\n    code\n    name\n    continent {\n      name\n    }\n  }\n}",
         "error_msg": "Error: No se pudieron obtener los datos. Verifique el punto final o la sintaxis de la consulta.",
         "success_msg": "Consulta ejecutada con éxito."
     },
@@ -144,8 +142,8 @@ TEXTS = {
         "query_label": "📝 Requête GraphQL",
         "run_btn": "▶️ Exécuter la requête",
         "response_title": "📊 Réponse",
-        "default_endpoint": "https://api.spacex.land/graphql/",
-        "default_query": "{\n  launchesPast(limit: 5) {\n    mission_name\n    launch_date_local\n    rocket {\n      rocket_name\n    }\n  }\n}",
+        "default_endpoint": "https://countries.trevorblades.com/",
+        "default_query": "{\n  countries {\n    code\n    name\n    continent {\n      name\n    }\n  }\n}",
         "error_msg": "Erreur : Impossible de récupérer les données. Vérifiez le point d'accès ou la syntaxe de la requête.",
         "success_msg": "Requête exécutée avec succès."
     },
@@ -154,8 +152,8 @@ TEXTS = {
         "query_label": "📝 Rekèt GraphQL",
         "run_btn": "▶️ Kouri rekèt",
         "response_title": "📊 Repons",
-        "default_endpoint": "https://api.spacex.land/graphql/",
-        "default_query": "{\n  launchesPast(limit: 5) {\n    mission_name\n    launch_date_local\n    rocket {\n      rocket_name\n    }\n  }\n}",
+        "default_endpoint": "https://countries.trevorblades.com/",
+        "default_query": "{\n  countries {\n    code\n    name\n    continent {\n      name\n    }\n  }\n}",
         "error_msg": "Erè: Pa t kapab chache done yo. Tcheke pwen an oswa sentaks rekèt la.",
         "success_msg": "Rekèt egzekite avèk siksè."
     }
@@ -180,7 +178,9 @@ if st.button(get_text("run_btn"), use_container_width=True):
     else:
         with st.spinner("Sending query..."):
             try:
-                response = requests.post(endpoint, json={"query": query})
+                # Set proper headers for GraphQL
+                headers = {"Content-Type": "application/json"}
+                response = requests.post(endpoint, json={"query": query}, headers=headers, timeout=10)
                 if response.status_code == 200:
                     data = response.json()
                     st.success(get_text("success_msg"))
@@ -188,11 +188,15 @@ if st.button(get_text("run_btn"), use_container_width=True):
                     st.json(data)
                 else:
                     st.error(f"HTTP {response.status_code}: {response.text}")
+            except requests.exceptions.Timeout:
+                st.error("Request timed out. Please try again.")
+            except requests.exceptions.ConnectionError:
+                st.error("Connection error. Check the endpoint URL.")
             except Exception as e:
                 st.error(f"{get_text('error_msg')} Details: {e}")
 
 st.markdown("---")
-st.markdown("📘 **Example query:** Get the last 5 SpaceX launches with mission name, date, and rocket name. You can modify the query or change the endpoint to any public GraphQL API.")
+st.markdown("📘 **Example query:** Get a list of all countries with their code, name, and continent. You can modify the query or change the endpoint to any public GraphQL API (e.g., SpaceX, GitHub, etc.).")
 
 # Footer
 st.markdown('<div class="footer">🌍 *GlobalInternet.py – GraphQL API Explorer* 🌍</div>', unsafe_allow_html=True)
